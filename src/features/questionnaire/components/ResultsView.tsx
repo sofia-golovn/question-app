@@ -9,11 +9,28 @@ export const ResultsView: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { answers, algoliaResults, isLoadingResults } = useSelector((state: RootState) => state.questionnaire);
 
-  const userName = (answers["q_name"] as string) || "друг";
+  const rawName = (answers["q_name"] as string)?.trim();
+  const userName = rawName || "вас";
 
   useEffect(() => {
     dispatch(fetchAlgoliaResults(answers));
   }, [dispatch, answers]);
+
+  const getResultsPlural = (count: number) => {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+      return `${count} варіантів`;
+    }
+    if (lastDigit === 1) {
+      return `${count} варіант`;
+    }
+    if (lastDigit >= 2 && lastDigit <= 4) {
+      return `${count} варіанти`;
+    }
+    return `${count} варіантів`;
+  };
 
   return (
     <div className="space-y-8 text-gray-900">
@@ -22,10 +39,12 @@ export const ResultsView: React.FC = () => {
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Каталог підбору</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            Рекомендовані хвостики для вас, {userName}:
+            Рекомендовані хвостики для {userName}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Знайдено {algoliaResults.length} варіантів на основі вашого опитування
+            {isLoadingResults
+              ? "Завантаження результатів..."
+              : `Знайдено ${getResultsPlural(algoliaResults.length)} на основі вашого опитування`}
           </p>
         </div>
 
